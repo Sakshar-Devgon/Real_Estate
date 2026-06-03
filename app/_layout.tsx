@@ -1,7 +1,10 @@
 import { ClerkProvider } from '@clerk/expo'
 import { tokenCache } from '@clerk/expo/token-cache'
 import { Slot } from 'expo-router'
+import * as SplashScreen from 'expo-splash-screen'
 import "../global.css"
+
+SplashScreen.preventAutoHideAsync();
 
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!
 

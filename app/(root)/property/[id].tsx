@@ -27,7 +27,7 @@ import { formatPrice } from "@/lib/utils";
 import { useSupabase } from "@/Hooks/useSupabase";
 
 const { width } = Dimensions.get("window");
-const ADMIN_PHONE = "919999999999"; // replace with your WhatsApp number
+const ADMIN_PHONE = "918492056944"; // replace with your WhatsApp number
 
 export default function PropertyDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -318,7 +318,8 @@ export default function PropertyDetailScreen() {
           {/* Contact Button */}
           <TouchableOpacity
             onPress={handleContact}
-            className="flex-row items-center justify-center gap-2 bg-blue-600 py-4 rounded-2xl mb-4"
+            className="flex-row items-center justify-center gap-2 py-4 rounded-2xl mb-4"
+            style={{ backgroundColor: "#25D366" }}
           >
             <Ionicons name="logo-whatsapp" size={20} color="white" />
             <Text className="text-white font-bold text-base">

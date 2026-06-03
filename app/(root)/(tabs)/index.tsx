@@ -7,7 +7,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
 import {
-  ActivityIndicator,
   FlatList,
   Image,
   Text,
@@ -15,6 +14,34 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+
+function getGreeting() {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Good morning ☀️";
+  if (hour < 17) return "Good afternoon 👋";
+  return "Good evening 🌙";
+}
+
+function SkeletonCard() {
+  return (
+    <View className="bg-white rounded-2xl mb-4 overflow-hidden">
+      <View className="w-full h-40 bg-gray-200" />
+      <View className="p-3 gap-2">
+        <View className="h-4 bg-gray-200 rounded-full w-3/4" />
+        <View className="h-3 bg-gray-100 rounded-full w-1/2" />
+        <View className="h-4 bg-gray-200 rounded-full w-1/3 mt-1" />
+      </View>
+    </View>
+  );
+}
+
+function FeaturedSkeleton() {
+  return (
+    <View className="w-72 mr-4 rounded-3xl overflow-hidden bg-white">
+      <View style={{ height: 220 }} className="bg-gray-200" />
+    </View>
+  );
+}
 
 export default function HomeScreen() {
   const { user } = useUser();
@@ -33,17 +60,19 @@ export default function HomeScreen() {
   const fetchProperties = async () => {
     setLoading(true);
 
-    const { data: featuredData } = await supabase
-      .from("properties")
-      .select("*")
-      .eq("is_featured", true)
-      .order("created_at", { ascending: false });
-
-    const { data: recommendedData } = await supabase
-      .from("properties")
-      .select("*")
-      .eq("is_featured", false)
-      .order("created_at", { ascending: false });
+    const [{ data: featuredData }, { data: recommendedData }] =
+      await Promise.all([
+        supabase
+          .from("properties")
+          .select("*")
+          .eq("is_featured", true)
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("properties")
+          .select("*")
+          .eq("is_featured", false)
+          .order("created_at", { ascending: false }),
+      ]);
 
     setFeatured(featuredData ?? []);
     setRecommended(recommendedData ?? []);
@@ -53,8 +82,8 @@ export default function HomeScreen() {
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
       <FlatList
-        data={recommended}
-        keyExtractor={(item) => item.id}
+        data={loading ? (Array(3).fill(null) as null[]) : recommended}
+        keyExtractor={(item, i) => (item ? item.id : `skeleton-${i}`)}
         contentContainerStyle={{ paddingBottom: 100 }}
         showsVerticalScrollIndicator={false}
         ListHeaderComponent={
@@ -66,25 +95,21 @@ export default function HomeScreen() {
                 style={{ width: 90, height: 36 }}
                 resizeMode="contain"
               />
-              <View className="items-end">
-                <Text className="text-gray-500 text-xs">Good morning 👋</Text>
+              <TouchableOpacity
+                onPress={() => router.push("/(root)/(tabs)/profile")}
+                className="items-end"
+              >
+                <Text className="text-gray-400 text-xs">{getGreeting()}</Text>
                 <Text className="text-gray-900 text-base font-bold">
                   {user?.firstName ?? "User"}
                 </Text>
-              </View>
+              </TouchableOpacity>
             </View>
 
             {/* Search Bar */}
             <TouchableOpacity
               onPress={() => router.push("/(root)/(tabs)/search")}
-              className="mx-5 mb-6 flex-row items-center bg-white rounded-2xl px-4 py-3 gap-3"
-              style={{
-                shadowColor: "#000",
-                shadowOffset: { width: 0, height: 1 },
-                shadowOpacity: 0.06,
-                shadowRadius: 6,
-                elevation: 2,
-              }}
+              className="mx-5 mb-5 flex-row items-center bg-white rounded-2xl px-4 py-3.5 gap-3 border border-gray-100"
             >
               <Ionicons name="search-outline" size={18} color="#9CA3AF" />
               <Text className="text-gray-400 text-sm flex-1">
@@ -102,16 +127,35 @@ export default function HomeScreen() {
 
             {/* Featured Section */}
             <View className="mb-6">
-              <Text className="text-gray-900 text-lg font-bold px-5 mb-4">
-                Featured
-              </Text>
+              <View className="flex-row items-center justify-between px-5 mb-4">
+                <Text className="text-gray-900 text-lg font-bold">
+                  Featured
+                </Text>
+                <TouchableOpacity
+                  onPress={() => router.push("/(root)/(tabs)/search")}
+                >
+                  <Text className="text-blue-600 text-sm font-semibold">
+                    See all
+                  </Text>
+                </TouchableOpacity>
+              </View>
 
               {loading ? (
-                <ActivityIndicator
-                  size="small"
-                  color="#2563EB"
-                  className="py-10"
+                <FlatList
+                  data={[1, 2]}
+                  keyExtractor={(i) => String(i)}
+                  renderItem={() => <FeaturedSkeleton />}
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{ paddingHorizontal: 20 }}
+                  scrollEnabled={false}
                 />
+              ) : featured.length === 0 ? (
+                <View className="px-5">
+                  <Text className="text-gray-400 text-sm">
+                    No featured properties
+                  </Text>
+                </View>
               ) : (
                 <FlatList
                   data={featured}
@@ -125,20 +169,34 @@ export default function HomeScreen() {
             </View>
 
             {/* Recommended Header */}
-            <Text className="text-gray-900 text-lg font-bold px-5 mb-4">
-              Recommended
-            </Text>
+            <View className="flex-row items-center justify-between px-5 mb-4">
+              <Text className="text-gray-900 text-lg font-bold">
+                Recommended
+              </Text>
+              {!loading && (
+                <Text className="text-gray-400 text-sm">
+                  {recommended.length} listings
+                </Text>
+              )}
+            </View>
           </View>
         }
-        renderItem={({ item }) => (
-          <View className="px-5">
-            <PropertyCard property={item} />
-          </View>
-        )}
+        renderItem={({ item }) =>
+          item ? (
+            <View className="px-5">
+              <PropertyCard property={item} />
+            </View>
+          ) : (
+            <View className="px-5">
+              <SkeletonCard />
+            </View>
+          )
+        }
         ListEmptyComponent={
           !loading ? (
             <View className="items-center py-10">
-              <Text className="text-gray-400">No properties found</Text>
+              <Ionicons name="home-outline" size={40} color="#D1D5DB" />
+              <Text className="text-gray-400 mt-3">No properties found</Text>
             </View>
           ) : null
         }

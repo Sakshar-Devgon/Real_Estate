@@ -4,6 +4,7 @@ import { ScrollView } from 'react-native'
 import { Image } from 'react-native'
 import {useSignUp} from "@clerk/expo"
 import { useAuth } from '@clerk/expo'
+import { Ionicons } from '@expo/vector-icons'
 import { Link, useRouter } from 'expo-router'
 
 export default function SignUp() {
@@ -18,6 +19,7 @@ export default function SignUp() {
   const [password, setPassword] = React.useState('');
   const [code, setCode] = React.useState('');
   const [pendingVerification, setPendingVerification] = React.useState(false);
+  const [showPassword, setShowPassword] = React.useState(false);
 
   const isLoading = fetchStatus === "fetching";
 
@@ -78,7 +80,7 @@ export default function SignUp() {
   if(pendingVerification){
     return(
 
-     <View className="flex-1 items-center justify-center px-6 py-12">
+     <View className="flex-1 items-center justify-center px-6 py-12 bg-white">
             <Image source={require("../../assets/images/Kribb.png")} 
             className = "w-32 h-16 mb-8"
             resizeMode='contain'
@@ -185,14 +187,19 @@ export default function SignUp() {
                 </Text>
               )}
 
-              <TextInput 
-                className="w-full border border-gray-300 rounded-xl px-4 py-3 mb-6"
-                placeholder="Password"
-                placeholderTextColor="#9CA3AF"
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry
-              />
+              <View className="w-full flex-row items-center border border-gray-300 rounded-xl px-4 mb-6">
+                <TextInput
+                  className="flex-1 py-3"
+                  placeholder="Password"
+                  placeholderTextColor="#9CA3AF"
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry={!showPassword}
+                />
+                <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                  <Ionicons name={showPassword ? "eye-off-outline" : "eye-outline"} size={20} color="#9CA3AF" />
+                </TouchableOpacity>
+              </View>
               {errors.fields.password && (
                 <Text className="text-red-500 text-sm mb-2">
                   {errors.fields.password.message}

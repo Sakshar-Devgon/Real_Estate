@@ -1,4 +1,5 @@
 import { useSignIn } from "@clerk/expo";
+import { Ionicons } from "@expo/vector-icons";
 import { Link, useRouter } from "expo-router";
 import { useState } from "react";
 import {
@@ -18,6 +19,7 @@ export default function SignInScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [code, setCode] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const onSignInPress = async () => {
     const { error } = await signIn.password({
@@ -158,14 +160,19 @@ export default function SignInScreen() {
           </Text>
         )}
 
-        <TextInput
-          className="w-full border border-gray-300 rounded-xl px-4 py-3 mb-6"
-          placeholder="Password"
-          placeholderTextColor="#9CA3AF"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-        />
+        <View className="w-full flex-row items-center border border-gray-300 rounded-xl px-4 mb-6">
+          <TextInput
+            className="flex-1 py-3"
+            placeholder="Password"
+            placeholderTextColor="#9CA3AF"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry={!showPassword}
+          />
+          <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+            <Ionicons name={showPassword ? "eye-off-outline" : "eye-outline"} size={20} color="#9CA3AF" />
+          </TouchableOpacity>
+        </View>
         {errors.fields.password && (
           <Text className="text-red-500 mb-4">
             {errors.fields.password.message}
